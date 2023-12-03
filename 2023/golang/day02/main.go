@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var inputs = "../inputs/day02_02.txt"
+var inputs = "../inputs/day02.txt"
 
 var restriction = map[string]int{
 	"red":   12,

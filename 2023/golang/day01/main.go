@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var inputs = "../inputs/day01.txt"
+
 var digitsMap = map[string]int{
 	"one":   1,
 	"two":   2,
@@ -60,7 +62,7 @@ func (s *IndexSet) value() int {
 }
 
 func main() {
-	file, err := os.Open("../inputs/day01.txt")
+	file, err := os.Open(inputs)
 	if err != nil {
 		log.Fatal(err)
 	}

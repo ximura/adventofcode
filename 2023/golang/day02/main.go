@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var inputs = "../inputs/day02_01.txt"
+var inputs = "../inputs/day02_02.txt"
 
 var restriction = map[string]int{
 	"red":   12,
@@ -22,7 +22,6 @@ type GameResult struct {
 	results map[string]int
 }
 
-// Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 func newGameResult(str string) GameResult {
 	parts := strings.Split(str, ":")
 	// Define a regular expression to extract the numeric part
@@ -71,25 +70,40 @@ func main() {
 	}
 	defer file.Close()
 
-	result := 0
+	part1 := 0
+	part2 := 0
 	scanner := bufio.NewScanner(file)
+	games := make([]GameResult, 0, 5)
 	// optionally, resize scanner's capacity for lines over 64K, see next example
 	for scanner.Scan() {
 		line := scanner.Text()
-		result += checkGame(line)
+		games = append(games, newGameResult(line))
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println(result)
+	for i := range games {
+		part1 += checkGame(&games[i])
+		part2 += fewestNumber(&games[i])
+	}
+
+	log.Printf("Part1 : %d\n", part1)
+	log.Printf("Part2 : %d\n", part2)
 }
 
-func checkGame(str string) int {
-	gameResult := newGameResult(str)
-	if gameResult.isPossible() {
-		return gameResult.number
+func checkGame(g *GameResult) int {
+	if g.isPossible() {
+		return g.number
 	}
 	return 0
+}
+
+func fewestNumber(g *GameResult) int {
+	result := 1
+	for _, v := range g.results {
+		result = result * v
+	}
+	return result
 }

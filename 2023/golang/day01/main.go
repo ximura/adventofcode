@@ -29,13 +29,14 @@ var digitsMap = map[string]int{
 }
 
 type IndexSet struct {
-	indexes  map[int]int
-	minIndex int
-	maxIndex int
+	firstDigit  int
+	secondDigit int
+	minIndex    int
+	maxIndex    int
 }
 
 func NewIndexSet() IndexSet {
-	return IndexSet{indexes: make(map[int]int), minIndex: 9223372036854775807, maxIndex: -1}
+	return IndexSet{minIndex: 9223372036854775807, maxIndex: -1}
 }
 
 func (s *IndexSet) insert(i, v int) {
@@ -43,19 +44,19 @@ func (s *IndexSet) insert(i, v int) {
 		return
 	}
 
-	s.indexes[i] = v
-
 	if i > s.maxIndex {
+		s.secondDigit = v
 		s.maxIndex = i
 	}
 
 	if i < s.minIndex {
+		s.firstDigit = v
 		s.minIndex = i
 	}
 }
 
 func (s *IndexSet) value() int {
-	return s.indexes[s.minIndex]*10 + s.indexes[s.maxIndex]
+	return s.firstDigit*10 + s.secondDigit
 }
 
 func main() {
@@ -71,7 +72,6 @@ func main() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		n := filterNum(line)
-		log.Printf("%s - %d\n", line, n)
 		result += n
 	}
 

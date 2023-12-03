@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-var inputs = "../inputs/day03_1.txt"
+var inputs = "../inputs/day03.txt"
 
 type symbol struct {
 	x_start int

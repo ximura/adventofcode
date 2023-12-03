@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -19,17 +20,44 @@ type symbol struct {
 type field struct {
 	values [][]symbol
 	text   []string
+	stars  map[string][]int
 	x      int
 	y      int
 }
 
-func (f *field) hasAdjacent(x, start, end int) bool {
-	if f.getSymbol(x, start-1) || f.getSymbol(x, end+1) {
+func (f *field) addStar(x, y, value int) {
+	index := fmt.Sprintf("%d,%d", x, y)
+	s, ok := f.stars[index]
+	if !ok {
+		f.stars[index] = []int{value}
+	} else {
+		f.stars[index] = append(s, value)
+	}
+}
+
+func (f *field) hasAdjacent(x, start, end, value int) bool {
+	t := f.getSymbol(x, start-1)
+	if t == 2 {
+		f.addStar(x, start-1, value)
+	}
+	t1 := f.getSymbol(x, end+1)
+	if t1 == 2 {
+		f.addStar(x, end+1, value)
+	}
+	if t > 0 || t1 > 0 {
 		return true
 	}
 
 	for i := start - 1; i <= end+1; i++ {
-		if f.getSymbol(x+1, i) || f.getSymbol(x-1, i) {
+		t := f.getSymbol(x+1, i)
+		if t == 2 {
+			f.addStar(x+1, i, value)
+		}
+		t1 := f.getSymbol(x-1, i)
+		if t1 == 2 {
+			f.addStar(x-1, i, value)
+		}
+		if t > 0 || t1 > 0 {
 			return true
 		}
 	}
@@ -37,15 +65,23 @@ func (f *field) hasAdjacent(x, start, end int) bool {
 	return false
 }
 
-func (f *field) getSymbol(x, y int) bool {
+// getSymbol
+// 0 - not found
+// 1 - found
+// 2 - found star
+func (f *field) getSymbol(x, y int) int {
 	if x >= f.x || y >= f.y || x < 0 || y < 0 {
-		return false
+		return 0
 	}
 
 	if f.text[x][y] != '.' {
-		return true
+		if f.text[x][y] == '*' {
+			return 2
+		}
+
+		return 1
 	}
-	return false
+	return 0
 }
 
 func main() {
@@ -57,12 +93,13 @@ func main() {
 
 	part1 := 0
 	part2 := 0
-	field := field{}
+	field := field{stars: make(map[string][]int)}
 	scanner := bufio.NewScanner(file)
 	// optionally, resize scanner's capacity for lines over 64K, see next example
 	for scanner.Scan() {
 		line := scanner.Text()
-		field.values = append(field.values, parse(line))
+		symbols, _ := parse(line)
+		field.values = append(field.values, symbols)
 		field.text = append(field.text, line)
 		field.x = len(line)
 		field.y++
@@ -75,18 +112,27 @@ func main() {
 	for i := range field.values {
 		for j := range field.values[i] {
 			v := field.values[i][j]
-			if field.hasAdjacent(i, v.x_start, v.x_end) {
+			if field.hasAdjacent(i, v.x_start, v.x_end, v.value) {
 				part1 += v.value
 			}
 		}
+	}
+
+	for _, s := range field.stars {
+		if len(s) <= 1 {
+			continue
+		}
+
+		part2 += s[0] * s[1]
 	}
 
 	log.Printf("Part1 : %d\n", part1)
 	log.Printf("Part2 : %d\n", part2)
 }
 
-func parse(str string) []symbol {
+func parse(str string) ([]symbol, []int) {
 	result := make([]symbol, 0, 0)
+	stars := make([]int, 0, 0)
 	sym := symbol{x_start: -1}
 	for i, s := range str {
 		if isNumber(s) {
@@ -108,6 +154,10 @@ func parse(str string) []symbol {
 			sym = symbol{x_start: -1}
 		}
 
+		if s == '*' {
+			stars = append(stars, i)
+		}
+
 		if s == '.' {
 			continue
 		}
@@ -123,7 +173,7 @@ func parse(str string) []symbol {
 		result = append(result, sym)
 	}
 
-	return result
+	return result, stars
 }
 
 func isNumber(r rune) bool {

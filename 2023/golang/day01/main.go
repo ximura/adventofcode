@@ -2,12 +2,61 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"log"
 	"os"
+	"strings"
 )
 
-var ErrRuneNotInt = errors.New("type: rune was not int")
+var digitsMap = map[string]int{
+	"one":   1,
+	"two":   2,
+	"three": 3,
+	"four":  4,
+	"five":  5,
+	"six":   6,
+	"seven": 7,
+	"eight": 8,
+	"nine":  9,
+	"1":     1,
+	"2":     2,
+	"3":     3,
+	"4":     4,
+	"5":     5,
+	"6":     6,
+	"7":     7,
+	"8":     8,
+	"9":     9,
+}
+
+type IndexSet struct {
+	indexes  map[int]int
+	minIndex int
+	maxIndex int
+}
+
+func NewIndexSet() IndexSet {
+	return IndexSet{indexes: make(map[int]int), minIndex: 9223372036854775807, maxIndex: -1}
+}
+
+func (s *IndexSet) insert(i, v int) {
+	if i < 0 {
+		return
+	}
+
+	s.indexes[i] = v
+
+	if i > s.maxIndex {
+		s.maxIndex = i
+	}
+
+	if i < s.minIndex {
+		s.minIndex = i
+	}
+}
+
+func (s *IndexSet) value() int {
+	return s.indexes[s.minIndex]*10 + s.indexes[s.maxIndex]
+}
 
 func main() {
 	file, err := os.Open("../inputs/day01.txt")
@@ -22,6 +71,7 @@ func main() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		n := filterNum(line)
+		log.Printf("%s - %d\n", line, n)
 		result += n
 	}
 
@@ -33,28 +83,13 @@ func main() {
 }
 
 func filterNum(str string) int {
-	nums := make([]int, 0, 2)
-	for _, val := range str {
-		num, err := charToNum(val)
-		if err != nil {
-			continue
-		}
-		if len(nums) < 2 {
-			nums = append(nums, num)
-		} else {
-			nums[1] = num
-		}
-	}
-	if len(nums) == 1 {
-		nums = append(nums, nums[0])
+	index := NewIndexSet()
+	for d, v := range digitsMap {
+		i := strings.Index(str, d)
+		index.insert(i, v)
+		j := strings.LastIndex(str, d)
+		index.insert(j, v)
 	}
 
-	return nums[0]*10 + nums[1]
-}
-
-func charToNum(r rune) (int, error) {
-	if '0' <= r && r <= '9' {
-		return int(r) - '0', nil
-	}
-	return 0, ErrRuneNotInt
+	return index.value()
 }

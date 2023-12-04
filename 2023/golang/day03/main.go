@@ -98,7 +98,7 @@ func main() {
 	// optionally, resize scanner's capacity for lines over 64K, see next example
 	for scanner.Scan() {
 		line := scanner.Text()
-		symbols, _ := parse(line)
+		symbols := parse(line)
 		field.values = append(field.values, symbols)
 		field.text = append(field.text, line)
 		field.x = len(line)
@@ -130,9 +130,8 @@ func main() {
 	log.Printf("Part2 : %d\n", part2)
 }
 
-func parse(str string) ([]symbol, []int) {
+func parse(str string) []symbol {
 	result := make([]symbol, 0, 0)
-	stars := make([]int, 0, 0)
 	sym := symbol{x_start: -1}
 	for i, s := range str {
 		if isNumber(s) {
@@ -154,10 +153,6 @@ func parse(str string) ([]symbol, []int) {
 			sym = symbol{x_start: -1}
 		}
 
-		if s == '*' {
-			stars = append(stars, i)
-		}
-
 		if s == '.' {
 			continue
 		}
@@ -173,7 +168,7 @@ func parse(str string) ([]symbol, []int) {
 		result = append(result, sym)
 	}
 
-	return result, stars
+	return result
 }
 
 func isNumber(r rune) bool {

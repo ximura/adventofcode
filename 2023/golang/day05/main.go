@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var inputs = "../inputs/day05.txt"
@@ -27,94 +28,160 @@ var mapper = map[string]pair{
 	"humidity-to-location map:":    {source: "humidity", target: "location"},
 }
 
-type seed struct {
-	values map[string]int
+type rule struct {
+	sourceStart int
+	destStart   int
+	count       int
 }
 
-func (s seed) fillWithDefault(src, dst string) {
-	_, ok := s.values[dst]
+type ruleSet struct {
+	source string
+	target string
+
+	r []rule
+}
+
+type seed map[string]int
+
+func (s seed) applyRule(rs ruleSet) {
+	v := s[rs.source]
+	for _, r := range rs.r {
+		if v >= r.sourceStart && v < r.sourceStart+r.count {
+			s[rs.target] = r.destStart + (v - r.sourceStart)
+			break
+		}
+	}
+
+	_, ok := s[rs.target]
 	if !ok {
-		s.values[dst] = s.values[src]
+		s[rs.target] = s[rs.source]
 	}
 }
 
-type seeds map[int]*seed
-
-func (s seeds) fillWithDefault(src, dst string) {
-	for i := range s {
-		s[i].fillWithDefault(src, dst)
+func (s seed) reverse(rs ruleSet) {
+	v := s[rs.target]
+	for _, r := range rs.r {
+		source := v + r.sourceStart - r.destStart
+		if source >= r.sourceStart && source < r.sourceStart+r.count {
+			s[rs.source] = source
+			return
+		}
 	}
+
+	s[rs.source] = v
 }
 
 func main() {
+	timeStart := time.Now()
 	file, err := os.Open(inputs)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	s := make(seeds)
+	rules := make([]ruleSet, 0)
+	seeds := make([]int, 0)
+	rs := ruleSet{}
 	key := pair{}
-	part1 := 0
-	part2 := 0
 	scanner := bufio.NewScanner(file)
 	// optionally, resize scanner's capacity for lines over 64K, see next example
 	for scanner.Scan() {
 		line := scanner.Text()
-		newKey, ok := mapper[line]
-		if ok {
-			key = newKey
-			s.fillWithDefault(key.source, key.target)
+
+		if len(line) == 0 {
 			continue
 		}
-		parse(s, key, line)
+
+		if strings.HasPrefix(line, "seeds:") {
+			seeds = parseSeeds(line)
+			continue
+		}
+
+		newKey, ok := mapper[line]
+		if ok {
+			if len(rs.r) > 0 {
+				rules = append(rules, rs)
+			}
+			key = newKey
+			rs = ruleSet{source: key.source, target: key.target}
+			continue
+		}
+		rule := parse(line)
+		rs.r = append(rs.r, rule)
 	}
+	rules = append(rules, rs)
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	minLocation := 9223372036854775807
-	for i := range s {
-		l := s[i].values["location"]
-		if l < minLocation {
-			minLocation = l
-			part1 = l
-		}
-	}
+	p1 := part1(seeds, rules)
+	p2 := part2(rules, seeds)
 
-	log.Printf("Part1 : %d\n", part1)
-	log.Printf("Part2 : %d\n", part2)
+	log.Printf("Part1 : %d\n", p1)
+	log.Printf("Part2 : %d\n", p2)
+	log.Printf("Time: %.2fms\n", float64(time.Since(timeStart).Microseconds())/1000)
 }
 
-func parse(s seeds, p pair, str string) {
-	if strings.HasPrefix(str, "seeds:") {
-		parseSeeds(s, str)
-		return
+func part1(seeds []int, rules []ruleSet) int {
+	min := 9223372036854775807
+	for _, s := range seeds {
+		l := applyRules(seed{seedKey: s, "soil": s}, rules)
+		if l < min {
+			min = l
+		}
 	}
+	return min
+}
 
+func part2(rules []ruleSet, seeds []int) int {
+	l := 0
+	for {
+		s := seed{seedKey: -1, "location": l}
+		for i := len(rules); i > 0; i-- {
+			rs := rules[i-1]
+			s.reverse(rs)
+		}
+
+		seedValue := s[seedKey]
+		for i := 0; i < len(seeds); i = i + 2 {
+			start := seeds[i]
+			count := seeds[i+1]
+			if seedValue > start && seedValue < start+count {
+				return l
+			}
+		}
+
+		l++
+	}
+}
+
+func parse(str string) rule {
 	re := regexp.MustCompile(`(\d+)`)
 	matches := re.FindAllStringSubmatch(str, -1)
-	if len(matches) < 3 {
-		return
-	}
+
 	desStart, _ := strconv.Atoi(matches[0][1])
 	sourceStart, _ := strconv.Atoi(matches[1][1])
 	count, _ := strconv.Atoi(matches[2][1])
 
-	for i := range s {
-		v := s[i].values[p.source]
-		if v >= sourceStart && v < sourceStart+count {
-			s[i].values[p.target] = desStart + (v - sourceStart)
-		}
-	}
+	return rule{sourceStart: sourceStart, destStart: desStart, count: count}
 }
 
-func parseSeeds(s seeds, str string) {
+func parseSeeds(str string) []int {
 	re := regexp.MustCompile(`(\d+)`)
 	matches := re.FindAllStringSubmatch(str, -1)
-	for _, match := range matches {
+	result := make([]int, len(matches))
+	for i, match := range matches {
 		sd, _ := strconv.Atoi(match[1])
-		s[sd] = &seed{values: map[string]int{seedKey: sd, "soil": sd}}
+		result[i] = sd
 	}
+	return result
+}
+
+func applyRules(s seed, rs []ruleSet) int {
+	for _, r := range rs {
+		s.applyRule(r)
+	}
+
+	return s["location"]
 }

@@ -9,16 +9,25 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"time"
 )
 
 var inputs = "../inputs/day01.txt"
 
+type pair struct {
+	l, r int
+}
+
 type Data struct {
-	left  []int
-	right []int
+	left    []int
+	leftMap map[int]pair
+	right   []int
 }
 
 func (d *Data) InsertLeft(v int) {
+	p, _ := d.leftMap[v]
+	p.l += 1
+	d.leftMap[v] = p
 	d.left = insertSorted(d.left, v)
 }
 
@@ -31,6 +40,21 @@ func (d *Data) Distance() int {
 	result := 0
 	for i := 0; i < n; i++ {
 		result += abs(d.left[i] - d.right[i])
+	}
+
+	return result
+}
+
+func (d *Data) Simularity() int {
+	result := 0
+	for _, v := range d.right {
+		p, _ := d.leftMap[v]
+		p.r += 1
+		d.leftMap[v] = p
+	}
+
+	for k, v := range d.leftMap {
+		result += k * v.l * v.r
 	}
 
 	return result
@@ -76,6 +100,7 @@ func insertSorted(slice []int, v int) []int {
 }
 
 func main() {
+	timeStart := time.Now()
 	file, err := os.Open(inputs)
 	if err != nil {
 		log.Fatal(err)
@@ -87,13 +112,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println(d.Distance())
+	fmt.Printf("Part 1: %d\n", d.Distance())
+	fmt.Printf("Part 2: %d\n", d.Simularity())
+	fmt.Printf("Time: %.2fms\n", float64(time.Since(timeStart).Microseconds())/1000)
 }
 
 func parseFile(r io.Reader) (Data, error) {
 	d := Data{
-		left:  make([]int, 0, 2),
-		right: make([]int, 0, 2),
+		left:    make([]int, 0, 10),
+		right:   make([]int, 0, 10),
+		leftMap: make(map[int]pair, 10),
 	}
 
 	scanner := bufio.NewScanner(r)

@@ -11,4 +11,8 @@ Part 1: 2066446
 Part 2: 24931009
 Time: 0.87ms
 
+--- Day 2: Red-Nosed Reports ---
+Part 1: 564
+Part 2: 604
+Time: 0.70ms
 ```

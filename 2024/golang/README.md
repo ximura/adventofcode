@@ -20,4 +20,10 @@ Time: 0.70ms
 Part 1: 155955228
 Part 2: 100189366
 Time: 1.59ms
+
+--- Day 4: Ceres Search ---
+Part 1: 2547
+Part 2: 1939
+Time: 1.33ms
+
 ```

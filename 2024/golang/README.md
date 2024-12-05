@@ -15,4 +15,9 @@ Time: 0.87ms
 Part 1: 564
 Part 2: 604
 Time: 0.70ms
+
+--- Day 3: Mull It Over ---
+Part 1: 155955228
+Part 2: 100189366
+Time: 1.59ms
 ```

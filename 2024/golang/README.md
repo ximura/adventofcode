@@ -26,4 +26,9 @@ Part 1: 2547
 Part 2: 1939
 Time: 1.33ms
 
+--- Day 5: Print Queue ---
+Part 1: 4814
+Part 2: 5448
+Time: 29.95ms
+
 ```

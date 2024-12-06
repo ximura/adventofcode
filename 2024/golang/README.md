@@ -1,6 +1,6 @@
-# Advent of Code 2023 in Golang.
+# Advent of Code 2024 in Golang.
 
-See https://adventofcode.com/2023 for puzzle text and inputs.
+See https://adventofcode.com/2024 for puzzle text and inputs.
 
 
 Results:

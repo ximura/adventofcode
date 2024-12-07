@@ -12,80 +12,57 @@ import (
 
 var inputs = "../inputs/day07.txt"
 
-type OperationType int8
-
-const (
-	OperationNone OperationType = -1
-	OperationSum  OperationType = 0
-	OperationMul  OperationType = 1
-)
-
-func (o OperationType) String() string {
-	if o == OperationSum {
-		return "+"
-	}
-
-	if o == OperationMul {
-		return "*"
-	}
-
-	return ""
-}
-
 type test struct {
 	result int
 	values []int
-	valid  bool
 }
 
-func part1(input []test) int {
+func (t *test) check(acc, iter int) bool {
+	if acc > t.result {
+		return false
+	}
+
+	sum := acc + t.values[iter]
+	prod := acc * t.values[iter]
+	next := iter + 1
+	if len(t.values) == next {
+		return sum == t.result || prod == t.result
+	}
+
+	return t.check(sum, next) || t.check(prod, next)
+}
+
+func (t *test) checkCum(acc, iter int) bool {
+	if acc > t.result {
+		return false
+	}
+
+	sum := acc + t.values[iter]
+	prod := acc * t.values[iter]
+	cum := concat(acc, t.values[iter])
+	next := iter + 1
+	if len(t.values) == next {
+		return sum == t.result || prod == t.result || cum == t.result
+	}
+
+	return t.checkCum(sum, next) || t.checkCum(prod, next) || t.checkCum(cum, next)
+}
+
+func count(input []test) (int, int) {
 	result := 0
+	result2 := 0
 
 	for _, t := range input {
-		bCount := len(t.values) - 1
-		combinationCount := bCount * 2
-		tmp := make([]OperationType, bCount)
-		for i := 0; i <= combinationCount; i++ {
-			value := t.values[0]
-			for j := 0; j < bCount; j++ {
-				if hasBit(i, uint(j)) {
-					value *= t.values[j+1]
-					tmp[j] = OperationMul
-				} else {
-					value += t.values[j+1]
-					tmp[j] = OperationSum
-				}
+		if t.check(t.values[0], 1) {
+			result += t.result
+		}
 
-				if value > t.result {
-					break
-				}
-			}
-
-			if value == t.result {
-				result += value
-				t.valid = true
-
-				// for i, v := range t.values {
-				// 	fmt.Printf("%d ", v)
-				// 	if i < bCount {
-				// 		fmt.Printf("%s ", tmp[i])
-				// 	}
-				// }
-				// fmt.Printf(" = %d\n", t.result)
-
-				fmt.Printf("%d : %+v\n", t.result, t.values)
-
-				break
-			}
+		if t.checkCum(t.values[0], 1) {
+			result2 += t.result
 		}
 	}
 
-	return result
-}
-
-func part2(input []test) int {
-	result := 0
-	return result
+	return result, result2
 }
 
 func main() {
@@ -101,8 +78,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Part 1: %d\n", part1(input))
-	fmt.Printf("Part 2: %d\n", part2(input))
+	r1, r2 := count(input)
+	fmt.Printf("Part 1: %d\n", r1)
+	fmt.Printf("Part 2: %d\n", r2)
 	fmt.Printf("Time: %.2fms\n", float64(time.Since(timeStart).Microseconds())/1000)
 }
 
@@ -143,7 +121,17 @@ func byteToInt(b []byte) int {
 	return value
 }
 
-func hasBit(n int, pos uint) bool {
-	val := n & (1 << pos)
-	return (val > 0)
+func concat(left, right int) int {
+	shift := 0
+	digits := right
+	for digits > 0 {
+		digits = digits / 10
+		shift++
+	}
+	ret := left
+	for i := 0; i < shift; i++ {
+		ret *= 10
+	}
+	ret += right
+	return ret
 }

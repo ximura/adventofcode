@@ -38,6 +38,7 @@ Time: 2161.96ms
 
 --- Day 7: Bridge Repair ---
 Part 1: 882304362421
-Part 2: 0
-Time: 18.39ms
+Part 2: 145149066755184
+Time: 39.06ms
+
 ```

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"os"
+	"slices"
 	"time"
 )
 
@@ -23,6 +25,18 @@ const (
 
 type moves map[point]struct{}
 type states map[guard]struct{}
+type obstacles map[int][]point
+
+func (o obstacles) removeValue(k int, v point) {
+	t, ok := o[k]
+	if !ok {
+		return
+	}
+
+	o[k] = slices.DeleteFunc(t, func(p point) bool {
+		return p == v
+	})
+}
 
 type point struct {
 	x, y int
@@ -59,7 +73,19 @@ func (g *guard) changeDirection() {
 	}
 }
 
-func (g *guard) moveToClosesObstacle(m *Map) {
+func (g *guard) moveToClosesObstacle(m *Map, obs *point) bool {
+	if obs != nil {
+		m.colObstacles[obs.x] = append(m.colObstacles[obs.x], *obs)
+		m.rowObstacles[obs.y] = append(m.rowObstacles[obs.y], *obs)
+	}
+
+	defer func() {
+		if obs != nil {
+			m.colObstacles.removeValue(obs.x, *obs)
+			m.rowObstacles.removeValue(obs.y, *obs)
+		}
+	}()
+
 	switch g.direction {
 	case DirectionUp:
 		// look into columns
@@ -76,11 +102,12 @@ func (g *guard) moveToClosesObstacle(m *Map) {
 
 		count := g.y - targetY
 		for i := 1; i < count; i++ {
-			addMove(g.x, g.y-i, g.direction, m)
+			if !addMove(g.x, g.y-i, g.direction, m) {
+				return false
+			}
 		}
 
 		g.y = targetY + 1
-		return
 
 	case DirectionDown:
 		// look into columns
@@ -97,11 +124,12 @@ func (g *guard) moveToClosesObstacle(m *Map) {
 
 		count := targetY - g.y
 		for i := 1; i < count; i++ {
-			addMove(g.x, g.y+i, g.direction, m)
+			if !addMove(g.x, g.y+i, g.direction, m) {
+				return false
+			}
 		}
 
 		g.y = targetY - 1
-		return
 
 	case DirectionLeft:
 		// look into rows
@@ -118,11 +146,12 @@ func (g *guard) moveToClosesObstacle(m *Map) {
 
 		count := g.x - targetX
 		for i := 1; i < count; i++ {
-			addMove(g.x-i, g.y, g.direction, m)
+			if !addMove(g.x-i, g.y, g.direction, m) {
+				return false
+			}
 		}
 
 		g.x = targetX + 1
-		return
 
 	case DirectionRight:
 		// look into rows
@@ -139,12 +168,15 @@ func (g *guard) moveToClosesObstacle(m *Map) {
 
 		count := targetX - g.x
 		for i := 1; i < count; i++ {
-			addMove(g.x+i, g.y, g.direction, m)
+			if !addMove(g.x+i, g.y, g.direction, m) {
+				return false
+			}
 		}
 
 		g.x = targetX - 1
-		return
 	}
+
+	return true
 }
 
 func (g *guard) canLeave(maxX, maxY int) bool {
@@ -198,8 +230,8 @@ func addMove(x, y int, d DirectionType, m *Map) bool {
 type Map struct {
 	//field        [][]byte
 	maxX, maxY   int
-	colObstacles map[int][]point // y corrdinate mapped to obstacles in column
-	rowObstacles map[int][]point // x corrdinate mapped to obstacles in row
+	colObstacles obstacles // y corrdinate mapped to obstacles in column
+	rowObstacles obstacles // x corrdinate mapped to obstacles in row
 	moves        moves
 	state        states
 	guard        guard
@@ -207,8 +239,8 @@ type Map struct {
 }
 
 func (m *Map) reset() {
-	clear(m.moves)
 	clear(m.state)
+	clear(m.moves)
 
 	m.guard.x = m.start.x
 	m.guard.y = m.start.y
@@ -217,7 +249,7 @@ func (m *Map) reset() {
 
 func part1(m Map) int {
 	for {
-		m.guard.moveToClosesObstacle(&m)
+		m.guard.moveToClosesObstacle(&m, nil)
 		//fmt.Printf("%+v %s %d\n", m.guard.point, m.guard.Direction(), len(m.moves))
 
 		if m.guard.canLeave(m.maxX, m.maxY) {
@@ -232,6 +264,27 @@ func part1(m Map) int {
 
 func part2(m Map) int {
 	result := 0
+	moves := make(moves, len(m.moves))
+	maps.Copy(moves, m.moves)
+	delete(moves, m.start.point)
+
+	for move, _ := range moves {
+		m.reset()
+		for {
+			if !m.guard.moveToClosesObstacle(&m, &move) {
+				result++
+				break
+			}
+			//fmt.Printf("%+v %s %d\n", m.guard.point, m.guard.Direction(), len(m.moves))
+
+			if m.guard.canLeave(m.maxX, m.maxY) {
+				break
+			}
+
+			m.guard.changeDirection()
+		}
+	}
+
 	return result
 }
 

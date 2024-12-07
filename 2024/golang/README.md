@@ -31,4 +31,9 @@ Part 1: 4814
 Part 2: 5448
 Time: 29.95ms
 
+--- Day 6: Guard Gallivant ---
+Part 1: 5461
+Part 2: 0
+Time: 1.82ms
+
 ```

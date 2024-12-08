@@ -41,4 +41,9 @@ Part 1: 882304362421
 Part 2: 145149066755184
 Time: 39.06ms
 
+--- Day 8: Resonant Collinearity ---
+Part 1: 261
+Part 2: 898
+Time: 0.37ms
+
 ```

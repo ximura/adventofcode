@@ -46,4 +46,9 @@ Part 1: 261
 Part 2: 898
 Time: 0.37ms
 
+--- Day 9: Disk Fragmenter ---
+Part 1: 6283404590840
+Part 2: 6304576012713
+Time: 293.48ms
+
 ```

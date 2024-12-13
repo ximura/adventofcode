@@ -11,8 +11,6 @@ import (
 
 var inputs = "../inputs/day10.txt"
 
-type trail map[path]struct{}
-
 type path struct {
 	start, end point
 }
@@ -27,9 +25,10 @@ type input struct {
 	sizeX, sizeY int
 }
 
-func part1(input input) int {
+func count(input input) (int, int) {
 	result := 0
-	cache := make(trail)
+	rating := 0
+	cache := make(map[path]struct{})
 
 	for _, f := range input.final {
 		acc := make([]point, 0, 10)
@@ -42,12 +41,15 @@ func part1(input input) int {
 			c := path{start: p, end: f}
 			if _, ok := cache[c]; !ok {
 				result++
+				rating++
 				cache[c] = struct{}{}
+			} else {
+				rating++
 			}
 		}
 	}
 
-	return result
+	return result, rating
 }
 
 func check(input input, prev, x, y int, acc []point) []point {
@@ -76,11 +78,6 @@ func check(input input, prev, x, y int, acc []point) []point {
 	return acc
 }
 
-func part2(input input) int {
-	checkSum := 0
-	return checkSum
-}
-
 func main() {
 	timeStart := time.Now()
 	file, err := os.Open(inputs)
@@ -94,8 +91,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p1 := part1(input)
-	p2 := part2(input)
+	p1, p2 := count(input)
 	fmt.Printf("Part 1: %d\n", p1)
 	fmt.Printf("Part 2: %d\n", p2)
 	fmt.Printf("Time: %.2fms\n", float64(time.Since(timeStart).Microseconds())/1000)

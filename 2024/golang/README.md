@@ -51,4 +51,9 @@ Part 1: 6283404590840
 Part 2: 6304576012713
 Time: 293.48ms
 
+--- Day 10: Hoof It ---
+Part 1: 825
+Part 2: 0
+Time: 0.52ms
+
 ```

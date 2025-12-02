@@ -14,16 +14,6 @@ Time: 0.51ms
 --- Day 2: Gift Shop ---
 Part 1: 19219508902
 Part 2: 27180728081
-Time: 139.00ms
+Time: 15.21ms
 
 ```
-
-Part 1: 19219508902
-Part 2: 27180728081
-Time: 75.67ms
-
-
-Using 10 CPU threads
-Part 1: 19219508902
-Part 2: 27180728081
-Time: 15.21ms

@@ -7,7 +7,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -66,25 +68,56 @@ func parseFile(r io.Reader) (Data, error) {
 }
 
 func calcualte(d Data) (int64, int64) {
+	numCPU := runtime.NumCPU()
+	runtime.GOMAXPROCS(numCPU)
+	fmt.Printf("Using %d CPU threads\n", numCPU)
+
+	var wg sync.WaitGroup
+	type result struct {
+		rule1 int64
+		rule2 int64
+	}
+	resultCh := make(chan result, len(d))
+
+	for _, r := range d {
+		wg.Add(1)
+
+		go func(r IDRange) {
+			defer wg.Done()
+
+			buf := make([]byte, 0, 32)
+
+			localRule1 := int64(0)
+			localRule2 := int64(0)
+
+			for i := r.Start; i <= r.End; i++ {
+				buf = strconv.AppendInt(buf[:0], i, 10)
+				s := string(buf)
+
+				if isInvalidRule1Fast(s) {
+					localRule1 += i
+					localRule2 += i // all Rule1 are also Rule2
+					continue
+				}
+
+				if isInvalidRule2Fast(s) {
+					localRule2 += i
+				}
+			}
+
+			resultCh <- result{rule1: localRule1, rule2: localRule2}
+		}(r)
+	}
+
+	wg.Wait()
+	close(resultCh)
+
 	part1 := int64(0)
 	part2 := int64(0)
 
-	buf := make([]byte, 0, 32) // reuse buffers
-	for _, r := range d {
-		for i := r.Start; i <= r.End; i++ {
-			buf = strconv.AppendInt(buf[:0], i, 10)
-			s := string(buf)
-
-			if isInvalidRule1Fast(s) {
-				part1 += i
-				part2 += i // all Rule1 are also Rule2
-				continue
-			}
-
-			if isInvalidRule2Fast(s) {
-				part2 += i
-			}
-		}
+	for res := range resultCh {
+		part1 += res.rule1
+		part2 += res.rule2
 	}
 
 	return part1, part2

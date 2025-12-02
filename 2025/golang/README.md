@@ -21,3 +21,9 @@ Time: 139.00ms
 Part 1: 19219508902
 Part 2: 27180728081
 Time: 75.67ms
+
+
+Using 10 CPU threads
+Part 1: 19219508902
+Part 2: 27180728081
+Time: 15.21ms

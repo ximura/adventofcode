@@ -69,12 +69,19 @@ func calcualte(d Data) (int64, int64) {
 	part1 := int64(0)
 	part2 := int64(0)
 
+	buf := make([]byte, 0, 32) // reuse buffers
 	for _, r := range d {
 		for i := r.Start; i <= r.End; i++ {
-			if isInvalidRule1(i) {
+			buf = strconv.AppendInt(buf[:0], i, 10)
+			s := string(buf)
+
+			if isInvalidRule1Fast(s) {
 				part1 += i
+				part2 += i // all Rule1 are also Rule2
+				continue
 			}
-			if isInvalidRule2(i) {
+
+			if isInvalidRule2Fast(s) {
 				part2 += i
 			}
 		}
@@ -100,6 +107,17 @@ func isInvalidRule1(n int64) bool {
 	return first == second
 }
 
+// RULE 1 — exactly 2 repetitions
+func isInvalidRule1Fast(s string) bool {
+	l := len(s)
+	if l%2 != 0 {
+		return false
+	}
+	h := l / 2
+	// fast check: compare first with second
+	return s[:h] == s[h:]
+}
+
 // returns true if string s consists of a repeating substring repeated >= 2 times
 func isInvalidRule2(n int64) bool {
 	s := strconv.FormatInt(n, 10)
@@ -120,6 +138,34 @@ func isInvalidRule2(n int64) bool {
 		ok := true
 		for i := 1; i < repeats; i++ {
 			if s[i*subLen:(i+1)*subLen] != sub {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			return true
+		}
+	}
+	return false
+}
+
+// RULE 2 — repeated >= 2 times
+func isInvalidRule2Fast(s string) bool {
+	length := len(s)
+
+	// Try every divisor of the length
+	for subLen := 1; subLen*2 <= length; subLen++ {
+		if length%subLen != 0 {
+			continue
+		}
+
+		repeats := length / subLen
+		firstSub := s[:subLen]
+		ok := true
+
+		// compare blocks
+		for i := 1; i < repeats; i++ {
+			if s[i*subLen:(i+1)*subLen] != firstSub {
 				ok = false
 				break
 			}

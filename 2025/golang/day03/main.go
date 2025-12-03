@@ -50,7 +50,7 @@ func parseFile(r io.Reader) (Data, error) {
 func calcualte(d Data) (int64, int64) {
 	numCPU := runtime.NumCPU()
 	runtime.GOMAXPROCS(numCPU)
-	fmt.Printf("Using %d CPU threads\n", numCPU)
+	//fmt.Printf("Using %d CPU threads\n", numCPU)
 
 	var wg sync.WaitGroup
 	var part1 atomic.Int64
@@ -62,7 +62,7 @@ func calcualte(d Data) (int64, int64) {
 		go func(in string) {
 			defer wg.Done()
 			p1 := bestPair(d[i])
-			p2 := best12(d[i])
+			p2 := bestN(in, 12)
 			//fmt.Printf("In %s, you can make the largest joltage possible, %d\n", d[i], p2)
 			part1.Add(p1)
 			part2.Add(p2)
@@ -101,8 +101,7 @@ func bestPair(line string) int64 {
 	return int64(best)
 }
 
-func best12(line string) int64 {
-	k := 12
+func bestN(line string, k int) int64 {
 	n := len(line)
 	toRemove := n - k
 	stack := make([]byte, 0, k)

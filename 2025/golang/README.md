@@ -21,4 +21,9 @@ Part 1: 17281
 Part 2: 171388730430281
 Time: 0.41ms
 
+--- Day 4: Printing Department ---
+Part 1: 1493
+Part 2: 9194
+Time: 78.08ms
+
 ```

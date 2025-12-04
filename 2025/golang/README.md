@@ -26,4 +26,8 @@ Part 1: 1493
 Part 2: 9194
 Time: 78.08ms
 
+BFS solution
+Part 2: 9194
+Time: 2.47ms
+
 ```

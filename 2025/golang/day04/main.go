@@ -14,7 +14,6 @@ var inputs = "../inputs/day04.txt"
 type Data = []string
 
 func main() {
-	timeStart := time.Now()
 	file, err := os.Open(inputs)
 	if err != nil {
 		log.Fatal(err)
@@ -26,8 +25,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	timeStart := time.Now()
 	p1, p2 := calcualte(d)
 	fmt.Printf("Part 1: %d\n", p1)
+	fmt.Printf("Part 2: %d\n", p2)
+	fmt.Printf("Time: %.2fms\n", float64(time.Since(timeStart).Microseconds())/1000)
+
+	timeStart = time.Now()
+	p2 = part2BFS(d)
+	//fmt.Printf("Part 1: %d\n", p1)
 	fmt.Printf("Part 2: %d\n", p2)
 	fmt.Printf("Time: %.2fms\n", float64(time.Since(timeStart).Microseconds())/1000)
 }
@@ -193,4 +199,96 @@ func visualizeGrid(round, h, w int, rolls map[[2]int]bool, accessible [][2]int) 
 		fmt.Println(string(row))
 	}
 	fmt.Println()
+}
+
+func part2BFS(grid Data) int {
+	h := len(grid)
+	w := len(grid[0])
+
+	// Track which rolls exist
+	alive := make([][]bool, h)
+	adjCount := make([][]int, h)
+	for i := range alive {
+		alive[i] = make([]bool, w)
+		adjCount[i] = make([]int, w)
+	}
+
+	// Count initial rolls
+	for r := 0; r < h; r++ {
+		for c := 0; c < w; c++ {
+			if grid[r][c] == '@' {
+				alive[r][c] = true
+			}
+		}
+	}
+
+	// Precompute adjacency counts
+	for r := 0; r < h; r++ {
+		for c := 0; c < w; c++ {
+			if !alive[r][c] {
+				continue
+			}
+			cnt := 0
+			for _, d := range dirs {
+				rr := r + d[0]
+				cc := c + d[1]
+				if rr >= 0 && rr < h && cc >= 0 && cc < w && alive[rr][cc] {
+					cnt++
+				}
+			}
+			adjCount[r][c] = cnt
+		}
+	}
+
+	// Queue for BFS frontier
+	type Cell struct{ r, c int }
+	queue := make([]Cell, 0)
+
+	// Add initially accessible rolls
+	for r := 0; r < h; r++ {
+		for c := 0; c < w; c++ {
+			if alive[r][c] && adjCount[r][c] < 4 {
+				queue = append(queue, Cell{r, c})
+			}
+		}
+	}
+
+	totalRemoved := 0
+
+	for len(queue) > 0 {
+		next := queue[len(queue)-1]
+		queue = queue[:len(queue)-1]
+		r, c := next.r, next.c
+
+		// It may already be removed due to earlier queue entries
+		if !alive[r][c] {
+			continue
+		}
+
+		// Remove this roll
+		alive[r][c] = false
+		totalRemoved++
+
+		// Update neighbors
+		for _, d := range dirs {
+			rr := r + d[0]
+			cc := c + d[1]
+			if rr < 0 || rr >= h || cc < 0 || cc >= w {
+				continue
+			}
+			if !alive[rr][cc] {
+				continue
+			}
+
+			// Decrease adjacency count because one neighbor disappeared
+			adjCount[rr][cc]--
+
+			// If the neighbor JUST became accessible, queue it
+			if adjCount[rr][cc] == 3 {
+				queue = append(queue, Cell{rr, cc})
+			}
+		}
+	}
+
+	return totalRemoved
 }

@@ -30,4 +30,9 @@ BFS solution
 Part 2: 9194
 Time: 2.47ms
 
+--- Day 5: Cafeteria ---
+Part 1: 770
+Part 2: 357674099117260
+Time: 0.12ms
+
 ```

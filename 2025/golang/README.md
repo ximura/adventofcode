@@ -35,4 +35,9 @@ Part 1: 770
 Part 2: 357674099117260
 Time: 0.12ms
 
+--- Day 6: Trash Compactor ---
+Part 1: 5784380717354
+Part 2: 7996218225744
+Time: 0.22ms
+
 ```

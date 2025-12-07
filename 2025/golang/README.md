@@ -21,4 +21,18 @@ Part 1: 17281
 Part 2: 171388730430281
 Time: 0.41ms
 
+--- Day 4: Printing Department ---
+Part 1: 1493
+Part 2: 9194
+Time: 78.08ms
+
+BFS solution
+Part 2: 9194
+Time: 2.47ms
+
+--- Day 5: Cafeteria ---
+Part 1: 770
+Part 2: 357674099117260
+Time: 0.12ms
+
 ```

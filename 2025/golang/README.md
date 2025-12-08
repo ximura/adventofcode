@@ -45,4 +45,9 @@ Part 1: 1543
 Part 2: 3223365367809
 Time: 1.26ms
 
+--- Day 8: Playground ---
+Part 1: 112230
+Part 2: 2573952864
+Time: 136.86ms
+
 ```

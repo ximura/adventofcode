@@ -16,7 +16,7 @@ type Input struct {
 	Width, Height int
 	Start         Point
 	Passed        []Point
-	Splitter      []Point
+	Splitter      map[int][]Point
 }
 
 type Point struct {
@@ -42,7 +42,7 @@ func main() {
 func parseFile(r io.Reader) *Input {
 	p := &Input{
 		Start:    Point{-1, -1},
-		Splitter: []Point{},
+		Splitter: make(map[int][]Point, 70),
 	}
 
 	y := 0
@@ -57,7 +57,7 @@ func parseFile(r io.Reader) *Input {
 			pos := Point{x, y}
 			switch ch {
 			case '^':
-				p.Splitter = append(p.Splitter, pos)
+				p.Splitter[pos.Y] = append(p.Splitter[pos.Y], pos)
 			case 'S':
 				p.Start = pos
 			}
@@ -80,7 +80,7 @@ func calculate(data *Input) (int, int) {
 		next := map[Point]int{}
 		for point, cnt := range beamCounts {
 			point.Y++
-			if contains(data.Splitter, point) {
+			if p, ok := data.Splitter[point.Y]; ok && contains(p, point) {
 				part1++
 				r := Point{point.X + 1, point.Y}
 				l := Point{point.X - 1, point.Y}
@@ -116,7 +116,7 @@ func RenderParsed(p *Input) {
 			switch {
 			case pos == p.Start:
 				fmt.Print("S")
-			case contains(p.Splitter, pos):
+			case contains(p.Splitter[y], pos):
 				fmt.Print("^")
 			case contains(p.Passed, pos):
 				fmt.Print("|")

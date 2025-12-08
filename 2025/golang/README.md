@@ -43,6 +43,6 @@ Time: 0.22ms
 --- Day 7: Laboratories ---
 Part 1: 1543
 Part 2: 3223365367809
-Time: 41.26ms
+Time: 1.26ms
 
 ```

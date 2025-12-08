@@ -40,4 +40,9 @@ Part 1: 5784380717354
 Part 2: 7996218225744
 Time: 0.22ms
 
+--- Day 7: Laboratories ---
+Part 1: 1543
+Part 2: 3223365367809
+Time: 41.26ms
+
 ```
